@@ -13,3 +13,19 @@
 	- High-performance networking, with built-in visibility.
 	- Detecting and (optionally) preventing malicious activity.
 
+### eBPF's Roots: The Berkeley Packet Filter
+
+- has its roots in the BSD Packet Filter, described in 1993, paper written by Lawrence Berkeley National Laboratory's Steven McCanne and Van Jacobson.
+    - paper discuss pseudomachine that can run *filters*, which are programs to determine wheter to accept or reject a network packet.
+    - programs were whitten in BPF instruction set, a general-purpose of 32-bit instructions that closely resembles assembly language.
+
+Ex.
+
+```assembly
+ldh	[12]
+jeq	#ETHERTYPE IP, L1, L2
+L1:	ret	#TRUE
+L2:	ret	#0
+```
+
+
