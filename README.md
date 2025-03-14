@@ -46,4 +46,14 @@ L2:	ret	#0
     - several BPF helpres functions were added.
     - the eBPF verifier was added to ensure that eBPF programs are safe to run.
 
- 
+### The Evolution of eBPF to Production Systems
+
+- *kprobes* (kernel probes) had existed in linux kernel since 2005, allowing for traps to be set on almost any instruction in the kernel code. Developers could write kernel modules that attached functions to kprobes for debugging or performance measurement purposes.
+
+- eBPF integration with kprobes was added in 2015.
+
+- by 2016, first time using eBPF in production systems. Bredan Gregg's work tracing at Netflix became widely known in infrastructure and operations circles.
+
+- in the same year, Cilium project was announced, being the first networking project to use eBPF to replace the entire datapath in container environments.
+
+- in 2017, Facebook developed Katran, a layer 4 load balancer, met Facebook's need for a highly scalable and fast solution. Every single packet to  
