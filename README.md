@@ -39,4 +39,11 @@ L2:	ret	#0
 
 ### From BPF to eBPF
 
+- BPF evolved to waht we call "extended BPF" or "eBPF" starting in kernel version 3.18 in 2014. This involved several significant changes:
+    - BPF instructions overhauled to be more efficient on 64-bit machines, and the interpreter was entirely rewritten.
+    - eBPF *maps* were introduced: data structures that can be accessed by BPF programs and by user space applications, allowing information to be shared between them.
+    - the bpf() syscall was added, so that user space programs can interact with eBPF programs in the kernel.
+    - several BPF helpres functions were added.
+    - the eBPF verifier was added to ensure that eBPF programs are safe to run.
 
+ 
