@@ -28,4 +28,15 @@ L1:	ret	#TRUE
 L2:	ret	#0
 ```
 
+- This code filters out packets that are not Internet Protocol (IP) packets.
+    - **ldh**= loads a 2-byte value starting at byte 12 in this packet.
+    - **jeq**= compare the value that represents a IP packet
+    - if last instruction is true, then jump to instruction labeled L1, where packet is accepted returning a non-zero value, else return 0
+
+- BPF ("Berkeley Packet Filter"), introduced to Linux in 1997, in kernel version 2.1.75, where it was used in the tcpdump utility as an efficient way to capture the packets to be traced out.
+
+- in 2012, when seccomp-bpf was introduced in version 3.5 of the kernel. This enabled the use of BPF programs to make decisions about wheter to allow or deny user space applications from making system calls. This was the first step in the evolving BPF from the narrow scope of packet filtering to the general-purpose platform it is today.
+
+### From BPF to eBPF
+
 
