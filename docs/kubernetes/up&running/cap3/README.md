@@ -147,3 +147,49 @@ Events:
   Normal  NodeHasSufficientPID     26m   kubelet          Node minikube status is now: NodeHasSufficientPID
   Normal  RegisteredNode           26m   node-controller  Node minikube event: Registered Node minikube in Controller
 ```
+
+
+# Cluster Components
+
+One of the interesting aspects of Kubernetes is that many of the components that
+make up the Kubernetes cluster are actually deployed using Kubernetes itself.
+
+All of these components run in the kube-system namespace.
+
+## Kubernetes Proxy
+
+The Kubernetes proxy is responsible for routing network traffic to load-balanced
+services in the Kubernetes cluster.
+
+It is present on every node in the cluster.
+
+```bash
+kubectl get daemonSets --namespace=kube-system kube-proxy
+NAME         DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-proxy   1         1         1       1            1           kubernetes.io/os=linux   45h
+```
+
+## Kubernetes DNS
+
+Kubernetes also runs a DNS server, which provides naming and discovery for the
+services that are defined in the cluster.
+
+This DNS server also runs as a replicated service on the cluster.
+
+The DNS service is run as a Kubernetes deployment, which manages these replicas (this may also be named coredns or some
+other variant):
+
+```bash
+$ kubectl get deployments --namespace=kube-system
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+coredns   2/2     2            2           45h
+               
+$ kubectl get services --namespace=kube-system
+NAME       TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+kube-dns   ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   45h
+
+```
+
+This shows that the DNS service for the cluster has the address 10.96.0.10. If you
+log in to a container in the cluster, you’ll see that this has been populated into the /etc/
+resolv.conf file for the container.
