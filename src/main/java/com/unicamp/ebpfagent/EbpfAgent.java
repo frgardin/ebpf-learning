@@ -1,21 +1,23 @@
 package com.unicamp.ebpfagent;
 
-import java.util.stream.IntStream;
+import java.io.IOException;
 
 public class EbpfAgent {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException, Exception {
         int mapFd = LibBpf.INSTANCE.bpfObjGet("/sys/fs/bpf/execCounter");
         EbpfMapReader reader = new EbpfMapReader(mapFd);
         PrometheusExporter exporter = new PrometheusExporter();
 
         while (true) {
-            IntStream.range(0,Integer.MAX_VALUE).forEach(pid -> {
+            for (int pid = 0; pid < Integer.MAX_VALUE; pid++) {
                 long count = reader.getCount(pid);
                 if (count > 0) {
+                    Thread.sleep(1000);
+                    System.out.println("pid= " + pid + "count= " +count);
                     exporter.update(pid, count);
                 }
-            });
-            Thread.sleep(2000);
+            }
+            Thread.sleep(1000);
         }
     }
 }

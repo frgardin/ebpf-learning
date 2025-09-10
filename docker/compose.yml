@@ -22,6 +22,12 @@ services:
     restart: unless-stopped
     networks:
       - monitoring
+  pushgateway:
+    image: prom/pushgateway
+    ports:
+      - "9091:9091"
+    networks:
+      - monitoring
 
 networks:
   monitoring:
