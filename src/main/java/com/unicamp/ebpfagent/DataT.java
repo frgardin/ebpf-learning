@@ -19,10 +19,8 @@ public record DataT(int pid, int uid, String command, String message) {
         // read ints (little endian on x86_64)
         int pid = p.getInt(0);
         int uid = p.getInt(4);
-        byte[] commBytes = p.getByteArray(8, 16);
-        byte[] msgBytes = p.getByteArray(24, 12);
-        String comm = new String(commBytes, StandardCharsets.UTF_8).split("\0", 2)[0];
-        String msg = new String(msgBytes, StandardCharsets.UTF_8).split("\0", 2)[0];
+        String comm = p.getString(8);
+        String msg = p.getString(24);
         return new DataT(pid, uid, comm, msg);
     }
 
