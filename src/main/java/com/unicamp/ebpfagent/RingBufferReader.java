@@ -29,9 +29,15 @@ public class RingBufferReader {
         pfd.events = (short) 1; // POLLIN
 
         int ret = LibC.INSTANCE.poll(new PollFd[]{pfd}, 1, 1000);
+        System.out.println("ret=" + ret);
         if (ret > 0 && (pfd.revents & 1) != 0) {
             byte[] buf = new byte[256]; // depende do tamanho do evento
             int read = LibC.INSTANCE.read(mapFd, buf, buf.length);
+            System.out.println("read=" + read);
+            if (read == -1) {
+                int errno = com.sun.jna.Native.getLastError();
+                System.err.println("read failed, errno=" + errno);
+            }
             if (read > 0) {
                 String msg = new String(buf, 0, read);
                 System.out.println("Event: " + msg);
