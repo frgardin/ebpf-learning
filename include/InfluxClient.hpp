@@ -11,16 +11,18 @@ private:
 
 public:
     explicit InfluxClient(const std::string &host,
-                                        int  port,
+                          int port,
                           const std::string &db = "",
                           const std::string &usr = "",
                           const std::string &pwd = "",
                           const std::string &precision = "ms",
                           const std::string &token = "");
-    std::string getServerUrl() const {
+    std::string getServerUrl() const
+    {
         return server_info.host_ + ":" + std::to_string(server_info.port_);
     }
-    std::string getDatabase() const {
+    std::string getDatabase() const
+    {
         return db;
     }
     void writeMetric(const std::string &measurement, const std::string &tag, double value);

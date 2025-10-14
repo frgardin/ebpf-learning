@@ -4,12 +4,13 @@
 #include <unordered_map>
 #include <stdexcept>
 
-class BpfReader {
+class BpfReader
+{
 private:
     int mapFd;
     std::string mapPath;
 
 public:
-    explicit BpfReader(const std::string& pinnedPath);
+    explicit BpfReader(const std::string &pinnedPath);
     std::unordered_map<int, long> readAll();
 };

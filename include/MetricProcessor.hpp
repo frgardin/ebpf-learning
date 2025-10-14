@@ -2,7 +2,8 @@
 #include <unordered_map>
 #include <string>
 
-class MetricProcessor {
+class MetricProcessor
+{
 public:
-    static std::unordered_map<std::string, double> process(const std::unordered_map<int, long>& raw);
+    static std::unordered_map<std::string, double> process(const std::unordered_map<int, long> &raw);
 };
