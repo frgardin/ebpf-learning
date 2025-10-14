@@ -1,10 +1,11 @@
-venv/
-target/
-
+# IDE files
 .vscode
 
+# BPF compiled files
 **.bpf.o
 
+# environment files
 docker/.env*
 
+# build files
 build/
