@@ -1,9 +1,23 @@
 services:
 
+  influxdb:
+    image: influxdb:1.12.2
+    ports:
+      - 8086:8086
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: influxdb-data
+        target: /var/lib/influxdb
+    networks:
+      - monitoring
+
   influxdb2:
     image: influxdb:2
     ports:
-      - 8086:8086
+      - 8085:8086
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME_FILE: /run/secrets/influxdb2-admin-username
@@ -22,8 +36,6 @@ services:
       - type: volume
         source: influxdb2-config
         target: /etc/influxdb2
-    networks:
-      - monitoring
 
   prometheus:
     image: prom/prometheus:latest
@@ -65,6 +77,7 @@ secrets:
 
 volumes:
   influxdb2-data:
+  influxdb-data:
   influxdb2-config:
 
 networks:
