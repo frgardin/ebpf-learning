@@ -13,22 +13,22 @@ InfluxClient::InfluxClient(const std::string &host,
     : server_info(host, port, db, usr, pwd, precision, token), db(db)
 {
     // Validate required parameters
-    if (host.empty()) {
+    if (host.empty())
+    {
         throw std::invalid_argument("Host cannot be empty");
     }
-    if (port <= 0 || port > 65535) {
+    if (port <= 0 || port > 65535)
+    {
         throw std::invalid_argument("Port must be between 1 and 65535");
     }
 }
 
 void InfluxClient::writeMetric(const std::string &measurement, const std::string &tag, double value)
 {
-
 }
 
 void InfluxClient::writeMetric(const std::string &measurement,
-                              const std::vector<std::pair<std::string, std::string>> &tags,
-                              const std::vector<std::pair<std::string, double>> &fields)
+                               const std::vector<std::pair<std::string, std::string>> &tags,
+                               const std::vector<std::pair<std::string, double>> &fields)
 {
-
 }
