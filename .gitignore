@@ -6,3 +6,10 @@ target/
 **.bpf.o
 
 docker/.env*
+
+_deps
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+build/
