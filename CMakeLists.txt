@@ -14,18 +14,21 @@ find_library(BPF_LIBRARY bpf)
 include_directories(${LIBBPF_INCLUDE_DIR} include)
 
 # -----------------------------
-# influxdb-cxx (via FetchContent)
+# influxdb-cpp (header-only library)
 # -----------------------------
 include(FetchContent)
 FetchContent_Declare(
-  influxdb-cxx
-  GIT_REPOSITORY https://github.com/offa/influxdb-cxx.git
-  GIT_TAG v0.6.3
+    influxdb-cpp
+    GIT_REPOSITORY https://github.com/orca-zhang/influxdb-cpp.git
 )
-FetchContent_MakeAvailable(influxdb-cxx)
+FetchContent_MakeAvailable(influxdb-cpp)
+
+# Create an interface library target for the header-only library
+add_library(influxdb-cpp INTERFACE)
+target_include_directories(influxdb-cpp INTERFACE ${influxdb-cpp_SOURCE_DIR})
 
 # -----------------------------
-# Executável principal
+# Main executable
 # -----------------------------
 add_executable(ebpf-observer
     src/main.cpp
@@ -35,7 +38,7 @@ add_executable(ebpf-observer
 )
 
 # -----------------------------
-# Linkagem
+# Link libraries
 # -----------------------------
 target_link_libraries(ebpf-observer
     PRIVATE
@@ -44,5 +47,12 @@ target_link_libraries(ebpf-observer
         elf
         z
         m
-        influxdb-cxx  # Use the actual target name, not the imported target
+        influxdb-cpp  # Now links to the interface target
+)
+
+# Include directories for your target
+target_include_directories(ebpf-observer 
+    PRIVATE 
+        ${LIBBPF_INCLUDE_DIR}
+        include
 )
