@@ -53,7 +53,6 @@ int main() {
             } else {
                 Logger::error("Failed to write syscall counts to InfluxDB");
             }
-            
             std::this_thread::sleep_for(std::chrono::seconds(2));
         }
         
