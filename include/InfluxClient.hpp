@@ -1,32 +1,35 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "influxdb.hpp"
 
-class InfluxClient
-{
+class InfluxClient {
 private:
-    influxdb_cpp::server_info server_info;
-    std::string db;
+    std::string baseUrl_;
+    std::string database_;
+    
+    static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* response);
 
 public:
-    explicit InfluxClient(const std::string &host,
-                          int port,
-                          const std::string &db = "",
-                          const std::string &usr = "",
-                          const std::string &pwd = "",
-                          const std::string &precision = "ms",
-                          const std::string &token = "");
-    std::string getServerUrl() const
-    {
-        return server_info.host_ + ":" + std::to_string(server_info.port_);
-    }
-    std::string getDatabase() const
-    {
-        return db;
-    }
-    void writeMetric(const std::string &measurement, const std::string &tag, double value);
-    void writeMetric(const std::string &measurement,
-                     const std::vector<std::pair<std::string, std::string>> &tags,
-                     const std::vector<std::pair<std::string, double>> &fields);
+    InfluxClient(const std::string &protocol = "http", 
+                     const std::string& host = "localhost", 
+                     int port = 8086,
+                     const std::string& database = "mydb");
+    
+    // Write single data point
+    bool write(const std::string& measurement, 
+               const std::vector<std::pair<std::string, std::string>>& fields,
+               const std::vector<std::pair<std::string, std::string>>& tags = {},
+               const std::string& timestamp = "");
+    
+    // Write raw line protocol
+    bool writeRaw(const std::string& lineProtocol);
+    
+    // Batch write multiple lines
+    bool writeBatch(const std::vector<std::string>& lines);
+    
+    // Health check
+    bool ping();
+    
+    // Create database
+    bool createDatabase(const std::string& dbName);
 };

@@ -14,6 +14,14 @@ find_library(BPF_LIBRARY bpf)
 include_directories(${LIBBPF_INCLUDE_DIR} include)
 
 # -----------------------------
+# curl
+# -----------------------------
+find_path(CURL_INCLUDE_DIR curl/curl.h)
+find_library(CURL_LIBRARY curl)
+
+include_directories(${CURL_INCLUDE_DIR} include)
+
+# -----------------------------
 # influxdb-cpp (header-only library)
 # -----------------------------
 include(FetchContent)
@@ -46,6 +54,7 @@ target_link_libraries(ebpf-observer
     PRIVATE
         ${LIBBPF_LIBRARY}
         ${BPF_LIBRARY}
+        ${CURL_LIBRARY}
         elf
         z
         m
@@ -56,5 +65,6 @@ target_link_libraries(ebpf-observer
 target_include_directories(ebpf-observer 
     PRIVATE 
         ${LIBBPF_INCLUDE_DIR}
+        ${CURL_INCLUDE_DIR}
         include
 )
