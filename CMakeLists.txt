@@ -33,6 +33,7 @@ target_include_directories(influxdb-cpp INTERFACE ${influxdb-cpp_SOURCE_DIR})
 add_executable(ebpf-observer
     src/main.cpp
     src/BpfReader.cpp
+    src/BpfSyscallFrequencyReader.cpp
     src/MetricProcessor.cpp
     src/InfluxClient.cpp
     src/Logger.cpp
