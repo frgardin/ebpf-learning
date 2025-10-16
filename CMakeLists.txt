@@ -35,6 +35,7 @@ add_executable(ebpf-observer
     src/BpfReader.cpp
     src/MetricProcessor.cpp
     src/InfluxClient.cpp
+    src/Logger.cpp
 )
 
 # -----------------------------
