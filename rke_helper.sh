@@ -6,7 +6,7 @@ apt-get -qq install -y zip net-tools
 
 ### install Kubernetes using RKE2 ###
 mkdir -p /etc/rancher/rke2
-cat << EOF >  /etc/rancher/rke2/config.yaml
+sudo cat << EOF | sudo tee /etc/rancher/rke2/config.yaml
 cni:
   - calico
 disable:
