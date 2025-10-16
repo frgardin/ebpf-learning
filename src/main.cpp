@@ -1,43 +1,43 @@
-extern "C"
-{
-#include "bpf/bpf.h"
-}
-
 #include <iostream>
-#include <fcntl.h>
-#include <unistd.h>
+#include <thread>
+#include <chrono>
+#include "BpfSyscallFrequencyReader.hpp"
+#include "Logger.hpp"
 
-int main(int argc, char *argv[])
-{
-    int map_id = 123;
+int main() {
 
-    if (argc > 1)
-    {
-        map_id = std::stoi(argv[1]);
-    }
-
-    int map_fd = bpf_map_get_fd_by_id(map_id);
-    if (map_fd < 0)
-    {
-        std::cerr << "Failed to get map FD. Make sure:" << std::endl;
-        std::cerr << "1. The BPF program is loaded" << std::endl;
-        std::cerr << "2. You're running as root" << std::endl;
-        std::cerr << "3. The map ID is correct" << std::endl;
+    Logger::setLogLevel(LogLevel::INFO);
+    
+    try {
+        BpfSyscallFrequencyReader bpfReader;
+        
+        Logger::info("Starting eBPF syscall monitor. Press Ctrl+C to stop.");
+        
+        while (true) {
+            auto data = bpfReader.readAll();
+            
+            Logger::info("=== Syscall Counts ===");
+            for (const auto& [key, count] : data) {
+                std::string syscall_name = bpfReader.getSyscallName(key);
+                Logger::info(std::format("{:12}: {}", syscall_name, count));
+            }
+            Logger::info("=====================");
+            
+            // Store in time series for later analysis
+            for (const auto& [key, count] : data) {
+                Logger::addTimeSeriesData(
+                    bpfReader.getSyscallName(key), 
+                    std::to_string(count)
+                );
+            }
+            
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+        
+    } catch (const std::exception& e) {
+        Logger::error(std::format("Error: {}", e.what()));
         return 1;
     }
-
-    int key = 0;
-    long value;
-
-    if (bpf_map_lookup_elem(map_fd, &key, &value) == 0)
-    {
-        std::cout << "Current syscall count: " << value << std::endl;
-    }
-    else
-    {
-        std::cerr << "Failed to read from map" << std::endl;
-    }
-
-    close(map_fd);
+    
     return 0;
 }
