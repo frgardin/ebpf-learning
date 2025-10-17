@@ -38,11 +38,12 @@ target_include_directories(influxdb-cpp INTERFACE ${influxdb-cpp_SOURCE_DIR})
 # -----------------------------
 # Main executable
 # -----------------------------
-add_executable(ebpf-observer
-    src/main.cpp
+add_executable(ebpf-syscall-metrics
+    src/main_syscall_metrics.cpp
     src/BpfReader.cpp
     src/BpfSyscallFrequencyReader.cpp
     src/MetricProcessor.cpp
+    src/RingBufReader.cpp
     src/InfluxClient.cpp
     src/Logger.cpp
 )
@@ -50,7 +51,7 @@ add_executable(ebpf-observer
 # -----------------------------
 # Link libraries
 # -----------------------------
-target_link_libraries(ebpf-observer
+target_link_libraries(ebpf-syscall-metrics
     PRIVATE
         ${LIBBPF_LIBRARY}
         ${BPF_LIBRARY}
@@ -62,7 +63,40 @@ target_link_libraries(ebpf-observer
 )
 
 # Include directories for your target
-target_include_directories(ebpf-observer 
+target_include_directories(ebpf-syscall-metrics 
+    PRIVATE 
+        ${LIBBPF_INCLUDE_DIR}
+        ${CURL_INCLUDE_DIR}
+        include
+)
+
+
+# -----------------------------
+# Main hello ring buffer executable
+# -----------------------------
+add_executable(ebpf-hello-ring-buffer
+    src/main_hello_ring_buffer.cpp
+    src/RingBufReader.cpp
+    src/InfluxClient.cpp
+    src/Logger.cpp
+)
+
+# -----------------------------
+# Link libraries
+# -----------------------------
+target_link_libraries(ebpf-hello-ring-buffer
+    PRIVATE
+        ${LIBBPF_LIBRARY}
+        ${BPF_LIBRARY}
+        ${CURL_LIBRARY}
+        elf
+        z
+        m
+        influxdb-cpp  # Now links to the interface target
+)
+
+# Include directories for your target
+target_include_directories(ebpf-hello-ring-buffer 
     PRIVATE 
         ${LIBBPF_INCLUDE_DIR}
         ${CURL_INCLUDE_DIR}
