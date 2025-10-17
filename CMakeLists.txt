@@ -43,7 +43,6 @@ add_executable(ebpf-syscall-metrics
     src/BpfReader.cpp
     src/BpfSyscallFrequencyReader.cpp
     src/MetricProcessor.cpp
-    src/RingBufReader.cpp
     src/InfluxClient.cpp
     src/Logger.cpp
 )
