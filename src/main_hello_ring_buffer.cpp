@@ -20,13 +20,13 @@ int main() {
     }
 
     auto eventCallback = [&](const data_t& event) {
-        Logger::info(std::format("PID: {}, UID: {}, Command: {}, Message: {}",
+        Logger::debug(std::format("PID: {}, UID: {}, Command: {}, Message: {}",
                                  event.pid, event.uid, event.command, event.message));
 
         std::string line = std::format("hello_events,pid={},uid={},command={} message=\"{}\"",
                                        event.pid, event.uid, event.command, event.message);
         if (influxClient.writeRaw(line)) {
-            Logger::info("Successfully wrote event to InfluxDB");
+            Logger::debug("Successfully wrote event to InfluxDB");
         } else {
             Logger::error("Failed to write event to InfluxDB");
         }
