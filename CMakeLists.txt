@@ -62,7 +62,7 @@ target_link_libraries(ebpf-syscall-metrics
 )
 
 # Include directories for your target
-target_include_directories(ebpf-syscall-metrics 
+target_include_directories(ebpf-syscall-metrics
     PRIVATE 
         ${LIBBPF_INCLUDE_DIR}
         ${CURL_INCLUDE_DIR}
@@ -95,7 +95,7 @@ target_link_libraries(ebpf-hello-ring-buffer
 )
 
 # Include directories for your target
-target_include_directories(ebpf-hello-ring-buffer 
+target_include_directories(ebpf-hello-ring-buffer
     PRIVATE 
         ${LIBBPF_INCLUDE_DIR}
         ${CURL_INCLUDE_DIR}
