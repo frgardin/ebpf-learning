@@ -36,7 +36,7 @@ int main() {
             // Store in time series for later analysis
             for (const auto& [key, count] : data) {
                 Logger::addTimeSeriesData(
-                    bpfReader.getSyscallName(key), 
+                    bpfReader.getSyscallName(key),
                     std::to_string(count)
                 );
             }
