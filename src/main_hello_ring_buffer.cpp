@@ -1,4 +1,4 @@
-#include "RingBufReader.hpp"
+#include "RingBufReaderDataT.hpp"
 #include "Logger.hpp"
 #include "InfluxClient.hpp"
 #include <thread>
@@ -6,7 +6,7 @@
 
 int main() {
     Logger::setLogLevel(LogLevel::INFO);
-    RingBufReader ringBufReader("/sys/fs/bpf/output");
+    RingBufReaderDataT ringBufReader("/sys/fs/bpf/output");
     InfluxClient influxClient("http", "localhost", 8086, "hello_ring_buffer");
 
     if (!ringBufReader.open()) {

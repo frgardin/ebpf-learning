@@ -125,7 +125,7 @@ add_executable(ebpf-hello-ring-buffer
     src/main_hello_ring_buffer.cpp
     
     # Ring buffer reader implementation
-    src/RingBufReader.cpp
+    src/RingBufReaderDataT.cpp
     
     # InfluxDB client (optional for this demo)
     src/InfluxClient.cpp
@@ -160,6 +160,34 @@ target_include_directories(ebpf-hello-ring-buffer
         ${CURL_INCLUDE_DIR}      # libcurl headers
         include                  # Project-specific headers
 )
+
+# Add the new Kubernetes performance monitor
+add_executable(k8s-performance-monitor
+    src/main_k8s_performance.cpp
+    src/K8sPerformanceCollector.cpp
+    src/RingBufReaderK8s.cpp
+    src/InfluxClient.cpp
+    src/Logger.cpp
+)
+
+target_link_libraries(k8s-performance-monitor
+    PRIVATE
+        ${LIBBPF_LIBRARY}
+        ${BPF_LIBRARY}
+        ${CURL_LIBRARY}
+        elf
+        z
+        m
+        pthread
+)
+
+target_include_directories(k8s-performance-monitor
+    PRIVATE 
+        ${LIBBPF_INCLUDE_DIR}
+        ${CURL_INCLUDE_DIR}
+        include
+)
+
 
 # =============================================================================
 # Build Configuration Notes:

@@ -1,18 +1,18 @@
-#include "RingBufReader.hpp"
+#include "RingBufReaderK8s.hpp"
 #include <cstring>
 #include <stdexcept>
 #include <unistd.h>
 
-RingBufReader::RingBufReader(const std::string &pinned_path) 
+RingBufReaderK8s::RingBufReaderK8s(const std::string &pinned_path) 
     : map_path(pinned_path), map_fd(-1), rb(nullptr), running(false) {
 }
 
-RingBufReader::~RingBufReader() {
+RingBufReaderK8s::~RingBufReaderK8s() {
     stop_reading();
     close();
 }
 
-bool RingBufReader::open() {
+bool RingBufReaderK8s::open() {
     map_fd = bpf_obj_get(map_path.c_str());
     if (map_fd < 0) {
         Logger::error("Failed to open ring buffer map: " + map_path);
@@ -31,7 +31,7 @@ bool RingBufReader::open() {
     return true;
 }
 
-void RingBufReader::close() {
+void RingBufReaderK8s::close() {
     if (rb) {
         ring_buffer__free(rb);
         rb = nullptr;
@@ -42,15 +42,15 @@ void RingBufReader::close() {
     }
 }
 
-int RingBufReader::handle_ringbuf_event(void *ctx, void *data, size_t size) {
-    RingBufReader *reader = static_cast<RingBufReader*>(ctx);
+int RingBufReaderK8s::handle_ringbuf_event(void *ctx, void *data, size_t size) {
+    RingBufReaderK8s *reader = static_cast<RingBufReaderK8s*>(ctx);
     
-    if (size != sizeof(data_t)) {
-        Logger::warn("Unexpected data size: " + std::to_string(size) + " expected: " + std::to_string(sizeof(data_t)));
+    if (size != sizeof(k8s_perf_event)) {
+        Logger::warn("Unexpected data size: " + std::to_string(size) + " expected: " + std::to_string(sizeof(k8s_perf_event)));
         return 0;
     }
     
-    data_t *event_data = static_cast<data_t*>(data);
+    k8s_perf_event *event_data = static_cast<k8s_perf_event*>(data);
     
     if (reader->user_callback) {
         reader->user_callback(*event_data);
@@ -59,7 +59,7 @@ int RingBufReader::handle_ringbuf_event(void *ctx, void *data, size_t size) {
     return 0;
 }
 
-void RingBufReader::start_reading(EventCallback callback) {
+void RingBufReaderK8s::start_reading(EventCallback callback) {
     if (!rb) {
         throw std::runtime_error("Ring buffer not opened");
     }
@@ -71,12 +71,12 @@ void RingBufReader::start_reading(EventCallback callback) {
     
     user_callback = callback;
     running = true;
-    read_thread = std::thread(&RingBufReader::read_loop, this);
+    read_thread = std::thread(&RingBufReaderK8s::read_loop, this);
     
     Logger::info("Ring buffer reader started");
 }
 
-void RingBufReader::stop_reading() {
+void RingBufReaderK8s::stop_reading() {
     if (running) {
         running = false;
         if (read_thread.joinable()) {
@@ -86,7 +86,7 @@ void RingBufReader::stop_reading() {
     }
 }
 
-void RingBufReader::read_loop() {
+void RingBufReaderK8s::read_loop() {
     const int timeout_ms = 100;
     
     while (running) {

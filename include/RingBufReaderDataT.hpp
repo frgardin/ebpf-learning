@@ -15,7 +15,7 @@ struct data_t {
     char message[12];
 };
 
-class RingBufReader {
+class RingBufReaderDataT {
 private:
     std::string map_path;
     int map_fd;
@@ -28,8 +28,8 @@ private:
 public:
     using EventCallback = std::function<void(const data_t&)>;
     
-    RingBufReader(const std::string &pinned_path = "/sys/fs/bpf/output");
-    ~RingBufReader();
+    RingBufReaderDataT(const std::string &pinned_path = "/sys/fs/bpf/output");
+    ~RingBufReaderDataT();
     
     bool open();
     void close();
