@@ -9,3 +9,6 @@ docker/.env*
 
 # build files
 build/
+
+# vmlinux
+**vmlinux.h
