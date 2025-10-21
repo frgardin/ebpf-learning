@@ -1,5 +1,11 @@
 -- hello this is a new ebpf study project, I will document here my evolution and study to reach my degree in electrical engineering -- 
 
+- generate vmlinux.h based on your system
+```bash
+bpftool btf dump file /sys/kernel/btf/vmlinux format c > ./ebpf/vmlinux.h
+```
+
+
 # Bibliography
 
 ## EBPF
