@@ -8,51 +8,63 @@
 #include <bpf/bpf.h>
 #include "Logger.hpp"
 
-struct k8s_perf_event {
-    int pid;
-    int uid;
-    unsigned long long timestamp;
-    int event_type;
-    unsigned long long duration_ns;
-    unsigned long long bytes;
-    int syscall_id;
-    char command[16];
-    char message[32];
+// CPU event structure
+struct cpu_event {
+    __u32 pid;
+    __u32 tgid;
+    __u64 timestamp;
+    char comm[16];
+    __u64 runtime_ns;
+    __u32 cpu_id;
+};
+
+// Memory event structure
+struct memory_event {
+    __u32 pid;
+    __u32 tgid;
+    __u64 timestamp;
+    char comm[16];
+    __u64 rss_kb;
+    __u64 cache_kb;
+    __u32 event_type;
 };
 
 // Event types
-#define EVENT_SYSCALL_ENTER   1
-#define EVENT_SYSCALL_EXIT    2
-#define EVENT_SCHED_IN        3
-#define EVENT_SCHED_OUT       4
-#define EVENT_NET_RX          5
-#define EVENT_NET_TX          6
-#define EVENT_FILE_READ       7
-#define EVENT_FILE_WRITE      8
+#define EVENT_CPU_USAGE       1
+#define EVENT_MEMORY_ALLOC    2
+#define EVENT_MEMORY_FREE     3
+#define EVENT_MEMORY_REPORT   4
 
 class RingBufReaderK8s {
 private:
-    std::string map_path;
-    int map_fd;
-    struct ring_buffer *rb;
+    std::string cpu_map_path;
+    std::string memory_map_path;
+    int cpu_map_fd;
+    int memory_map_fd;
+    struct ring_buffer *cpu_rb;
+    struct ring_buffer *memory_rb;
     std::atomic<bool> running;
     std::thread read_thread;
     
-    static int handle_ringbuf_event(void *ctx, void *data, size_t size);
+    static int handle_cpu_event(void *ctx, void *data, size_t size);
+    static int handle_memory_event(void *ctx, void *data, size_t size);
     
 public:
-    using EventCallback = std::function<void(const k8s_perf_event&)>;
+    using CpuEventCallback = std::function<void(const cpu_event&)>;
+    using MemoryEventCallback = std::function<void(const memory_event&)>;
     
-    RingBufReaderK8s(const std::string &pinned_path = "/sys/fs/bpf/output");
+    RingBufReaderK8s(const std::string &cpu_pinned_path = "/sys/fs/bpf/cpu_events",
+                    const std::string &memory_pinned_path = "/sys/fs/bpf/memory_events");
     ~RingBufReaderK8s();
     
     bool open();
     void close();
-    void start_reading(EventCallback callback);
+    void start_reading(CpuEventCallback cpu_callback, MemoryEventCallback memory_callback);
     void stop_reading();
     bool is_running() const { return running; }
     
 private:
-    EventCallback user_callback;
+    CpuEventCallback cpu_callback;
+    MemoryEventCallback memory_callback;
     void read_loop();
 };
