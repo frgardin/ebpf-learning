@@ -42,7 +42,6 @@ add_executable(ebpf-syscall-metrics
     src/main_syscall_metrics.cpp
     src/BpfReader.cpp
     src/BpfSyscallFrequencyReader.cpp
-    src/MetricProcessor.cpp
     src/InfluxClient.cpp
     src/Logger.cpp
 )
