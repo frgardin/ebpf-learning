@@ -4,30 +4,37 @@
 #include <thread>
 #include <chrono>
 
-int main() {
+int main()
+{
     Logger::setLogLevel(LogLevel::INFO);
     RingBufReaderDataT ringBufReader("/sys/fs/bpf/output");
     InfluxClient influxClient("http", "localhost", 8086, "hello_ring_buffer");
 
-    if (!ringBufReader.open()) {
+    if (!ringBufReader.open())
+    {
         Logger::error("Failed to open ring buffer reader");
         return 1;
     }
 
-    if (!influxClient.ping()) {
+    if (!influxClient.ping())
+    {
         Logger::error("Failed to connect to InfluxDB");
         return 1;
     }
 
-    auto eventCallback = [&](const data_t& event) {
+    auto eventCallback = [&](const data_t &event)
+    {
         Logger::debug(std::format("PID: {}, UID: {}, Command: {}, Message: {}",
-                                 event.pid, event.uid, event.command, event.message));
+                                  event.pid, event.uid, event.command, event.message));
 
         std::string line = std::format("hello_events,pid={},uid={},command={} message=\"{}\"",
                                        event.pid, event.uid, event.command, event.message);
-        if (influxClient.writeRaw(line)) {
+        if (influxClient.writeRaw(line))
+        {
             Logger::debug("Successfully wrote event to InfluxDB");
-        } else {
+        }
+        else
+        {
             Logger::error("Failed to write event to InfluxDB");
         }
     };
@@ -37,7 +44,8 @@ int main() {
     Logger::info("Started reading from ring buffer. Press Ctrl+C to stop.");
 
     // Keep the main thread alive while reading
-    while (ringBufReader.is_running()) {
+    while (ringBufReader.is_running())
+    {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     ringBufReader.stop_reading();
