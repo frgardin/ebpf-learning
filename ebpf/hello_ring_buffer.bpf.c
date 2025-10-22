@@ -3,12 +3,14 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 
-struct {
+struct
+{
     __uint(type, BPF_MAP_TYPE_RINGBUF);
     __uint(max_entries, 1 << 24); // 16 MB buffer
 } output SEC(".maps");
 
-struct data_t {
+struct data_t
+{
     int pid;
     int uid;
     char command[16];
@@ -16,7 +18,8 @@ struct data_t {
 };
 
 SEC("tp/syscalls/sys_enter_write")
-int hello_ring_buffer(void *ctx) {
+int hello_ring_buffer(void *ctx)
+{
     struct data_t *data;
 
     // reserva espaço no ringbuf

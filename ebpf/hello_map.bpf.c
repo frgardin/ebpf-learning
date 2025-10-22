@@ -12,7 +12,8 @@ const pid_t pid_filter = 0; // 0 = não filtra nenhum PID
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 // Cria um map do tipo HASH: chave = PID (u32), valor = contador (u64)
-struct {
+struct
+{
     __uint(type, BPF_MAP_TYPE_HASH);
     __uint(max_entries, 1024);
     __type(key, u32);
@@ -21,7 +22,7 @@ struct {
 
 // Programa anexado ao tracepoint sys_enter_write
 SEC("tp/syscalls/sys_enter_write")
-int track_write(struct trace_event_raw_sys_enter* ctx)
+int track_write(struct trace_event_raw_sys_enter *ctx)
 {
     u32 pid = bpf_get_current_pid_tgid() >> 32;
 
@@ -31,11 +32,13 @@ int track_write(struct trace_event_raw_sys_enter* ctx)
 
     u64 zero = 0, *val;
     val = bpf_map_lookup_elem(&execCounter, &pid);
-    if (!val) {
+    if (!val)
+    {
         // Cria o contador se não existir
         bpf_map_update_elem(&execCounter, &pid, &zero, BPF_ANY);
         val = bpf_map_lookup_elem(&execCounter, &pid);
-        if (!val) return 0; // falha
+        if (!val)
+            return 0; // falha
     }
 
     // Incrementa contador
