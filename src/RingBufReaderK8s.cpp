@@ -69,25 +69,43 @@ bool RingBufReaderK8s::open()
         return false;
     }
 
-    // Open Syscall Latency ring buffer (optional)
+    // Open Syscall Latency ring buffer
     syscall_latency_map_fd = bpf_obj_get(syscall_latency_map_path.c_str());
-    if (syscall_latency_map_fd >= 0)
+    if (memory_map_fd < 0)
     {
-        syscall_latency_rb = ring_buffer__new(syscall_latency_map_fd, handle_syscall_latency_event, this, nullptr);
-        if (!syscall_latency_rb)
-        {
-            Logger::warn("Failed to create Syscall Latency ring buffer, continuing without it");
-            ::close(syscall_latency_map_fd);
-            syscall_latency_map_fd = -1;
-        }
-        else
-        {
-            Logger::info("Syscall Latency ring buffer opened successfully");
-        }
+        Logger::error("Failed to open Syscall ring buffer map: " + syscall_latency_map_path);
+
+        ring_buffer__free(cpu_rb);
+        cpu_rb = nullptr;
+        ::close(cpu_map_fd);
+        cpu_map_fd = -1;
+
+        ring_buffer__free(memory_map_fd);
+        memory_rb = nullptr;
+        ::close(memory_map_fd);
+        memory_map_fd = -1;
+
+        return false;
     }
-    else
+
+    syscall_latency_rb = ring_buffer__new(syscall_latency_map_fd, handle_syscall_latency_event, this, nullptr);
+    if (!memory_rb)
     {
-        Logger::warn("Syscall Latency ring buffer not found at: " + syscall_latency_map_path + ", continuing without it");
+        Logger::error("Failed to create Memory ring buffer");
+
+        ring_buffer__free(cpu_rb);
+        cpu_rb = nullptr;
+        ::close(cpu_map_fd);
+        cpu_map_fd = -1;
+
+        ring_buffer__free(memory_map_fd);
+        memory_rb = nullptr;
+        ::close(memory_map_fd);
+        memory_map_fd = -1;
+
+        ::close(syscall_latency_map_fd);
+        syscall_latency_map_fd = -1;
+        return false;
     }
 
     Logger::info("Ring buffers opened successfully");
