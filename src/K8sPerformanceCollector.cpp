@@ -178,6 +178,7 @@ std::string K8sPerformanceCollector::format_cpu_metric(const cpu_event &event, c
     line << ",namespace=" << get_namespace_info(event.tgid);
     line << ",command=" << event.comm;
     line << ",cpu_id=" << event.cpu_id;
+    line << ",pid=" << event.pid;
     line << " ";
     line << "runtime_ns=" << event.runtime_ns << "i";
     line << ",usage_percent=" << (event.runtime_ns / 10000000.0); // Simplified calculation
@@ -371,10 +372,12 @@ std::string K8sPerformanceCollector::extract_pod_from_cgroup(const std::string &
 
     // Multiple patterns to match different Kubernetes cgroup formats
     std::vector<std::regex> patterns = {
-        std::regex("pod([a-f0-9-]+)\\.slice"),                                           // systemd with slices
-        std::regex("pod([a-f0-9-]+)/"),                                                  // cgroupfs format
-        std::regex("kubepods[^/]*/pod([a-f0-9-]+)"),                                     // kubepods prefix
-        std::regex("pod([a-f0-9-]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})") // full UUID
+        std::regex("pod([a-f0-9_-]+)\\.slice"),                                           // systemd with slices (supports _ and -)
+        std::regex("pod([a-f0-9_-]+)/"),                                                  // cgroupfs format (supports _ and -)
+        std::regex("kubepods[^/]*/pod([a-f0-9_-]+)"),                                     // kubepods prefix (supports _ and -)
+        std::regex("kubepods[^/]*-pod([a-f0-9_-]+)\\.slice"),                             // kubepods with slice (supports _ and -)
+        std::regex("pod([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})"),  // full UUID with dashes
+        std::regex("pod([a-f0-9]{8}_[a-f0-9]{4}_[a-f0-9]{4}_[a-f0-9]{4}_[a-f0-9]{12})")   // full UUID with underscores
     };
 
     for (const auto &pattern : patterns)
