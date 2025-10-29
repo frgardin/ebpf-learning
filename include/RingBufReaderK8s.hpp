@@ -31,43 +31,64 @@ struct memory_event
     __u32 event_type;
 };
 
+// Syscall latency event structure
+struct syscall_latency_event
+{
+    __u32 pid;
+    __u32 tgid;
+    __u64 timestamp;
+    char comm[16];
+    __u64 runtime_ns;
+    int syscall_id;
+};
+
 // Event types
 #define EVENT_CPU_USAGE 1
 #define EVENT_MEMORY_ALLOC 2
 #define EVENT_MEMORY_FREE 3
 #define EVENT_MEMORY_REPORT 4
+#define EVENT_SYSCALL_LATENCY 5
 
 class RingBufReaderK8s
 {
 private:
     std::string cpu_map_path;
     std::string memory_map_path;
+    std::string syscall_latency_map_path;
     int cpu_map_fd;
     int memory_map_fd;
+    int syscall_latency_map_fd;
     struct ring_buffer *cpu_rb;
     struct ring_buffer *memory_rb;
+    struct ring_buffer *syscall_latency_rb;
     std::atomic<bool> running;
     std::thread read_thread;
 
     static int handle_cpu_event(void *ctx, void *data, size_t size);
     static int handle_memory_event(void *ctx, void *data, size_t size);
+    static int handle_syscall_latency_event(void *ctx, void *data, size_t size);
 
 public:
     using CpuEventCallback = std::function<void(const cpu_event &)>;
     using MemoryEventCallback = std::function<void(const memory_event &)>;
+    using SyscallLatencyCallback = std::function<void(const syscall_latency_event &)>;
 
     RingBufReaderK8s(const std::string &cpu_pinned_path = "/sys/fs/bpf/cpu_events",
-                     const std::string &memory_pinned_path = "/sys/fs/bpf/memory_events");
+                     const std::string &memory_pinned_path = "/sys/fs/bpf/memory_events",
+                     const std::string &syscall_latency_path = "/sys/fs/bpf/syscall_latency_events");
     ~RingBufReaderK8s();
 
     bool open();
     void close();
-    void start_reading(CpuEventCallback cpu_callback, MemoryEventCallback memory_callback);
+    void start_reading(CpuEventCallback cpu_callback, 
+                      MemoryEventCallback memory_callback,
+                      SyscallLatencyCallback syscall_latency_callback = nullptr);
     void stop_reading();
     bool is_running() const { return running; }
 
 private:
     CpuEventCallback cpu_callback;
     MemoryEventCallback memory_callback;
+    SyscallLatencyCallback syscall_latency_callback;
     void read_loop();
 };

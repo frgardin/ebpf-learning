@@ -4,13 +4,17 @@
 #include <unistd.h>
 
 RingBufReaderK8s::RingBufReaderK8s(const std::string &cpu_pinned_path,
-                                   const std::string &memory_pinned_path)
+                                   const std::string &memory_pinned_path,
+                                   const std::string &syscall_latency_path)
     : cpu_map_path(cpu_pinned_path),
       memory_map_path(memory_pinned_path),
+      syscall_latency_map_path(syscall_latency_path),
       cpu_map_fd(-1),
       memory_map_fd(-1),
+      syscall_latency_map_fd(-1),
       cpu_rb(nullptr),
       memory_rb(nullptr),
+      syscall_latency_rb(nullptr),
       running(false)
 {
 }
@@ -65,7 +69,28 @@ bool RingBufReaderK8s::open()
         return false;
     }
 
-    Logger::info("CPU and Memory ring buffers opened successfully");
+    // Open Syscall Latency ring buffer (optional)
+    syscall_latency_map_fd = bpf_obj_get(syscall_latency_map_path.c_str());
+    if (syscall_latency_map_fd >= 0)
+    {
+        syscall_latency_rb = ring_buffer__new(syscall_latency_map_fd, handle_syscall_latency_event, this, nullptr);
+        if (!syscall_latency_rb)
+        {
+            Logger::warn("Failed to create Syscall Latency ring buffer, continuing without it");
+            ::close(syscall_latency_map_fd);
+            syscall_latency_map_fd = -1;
+        }
+        else
+        {
+            Logger::info("Syscall Latency ring buffer opened successfully");
+        }
+    }
+    else
+    {
+        Logger::warn("Syscall Latency ring buffer not found at: " + syscall_latency_map_path + ", continuing without it");
+    }
+
+    Logger::info("Ring buffers opened successfully");
     return true;
 }
 
@@ -81,6 +106,11 @@ void RingBufReaderK8s::close()
         ring_buffer__free(memory_rb);
         memory_rb = nullptr;
     }
+    if (syscall_latency_rb)
+    {
+        ring_buffer__free(syscall_latency_rb);
+        syscall_latency_rb = nullptr;
+    }
     if (cpu_map_fd >= 0)
     {
         ::close(cpu_map_fd);
@@ -90,6 +120,11 @@ void RingBufReaderK8s::close()
     {
         ::close(memory_map_fd);
         memory_map_fd = -1;
+    }
+    if (syscall_latency_map_fd >= 0)
+    {
+        ::close(syscall_latency_map_fd);
+        syscall_latency_map_fd = -1;
     }
 }
 
@@ -135,11 +170,34 @@ int RingBufReaderK8s::handle_memory_event(void *ctx, void *data, size_t size)
     return 0;
 }
 
-void RingBufReaderK8s::start_reading(CpuEventCallback cpu_cb, MemoryEventCallback memory_cb)
+int RingBufReaderK8s::handle_syscall_latency_event(void *ctx, void *data, size_t size)
 {
-    if (!cpu_rb || !memory_rb)
+    RingBufReaderK8s *reader = static_cast<RingBufReaderK8s *>(ctx);
+
+    if (size != sizeof(syscall_latency_event))
     {
-        throw std::runtime_error("Ring buffers not opened");
+        Logger::warn("Unexpected Syscall Latency data size: " + std::to_string(size) +
+                     " expected: " + std::to_string(sizeof(syscall_latency_event)));
+        return 0;
+    }
+
+    syscall_latency_event *event_data = static_cast<syscall_latency_event *>(data);
+
+    if (reader->syscall_latency_callback)
+    {
+        reader->syscall_latency_callback(*event_data);
+    }
+
+    return 0;
+}
+
+void RingBufReaderK8s::start_reading(CpuEventCallback cpu_cb,
+                                     MemoryEventCallback memory_cb,
+                                     SyscallLatencyCallback syscall_latency_cb)
+{
+    if (!cpu_rb || !memory_rb || !syscall_latency_cb)
+    {
+        throw std::runtime_error("Required ring buffers not opened");
     }
 
     if (running)
@@ -150,6 +208,7 @@ void RingBufReaderK8s::start_reading(CpuEventCallback cpu_cb, MemoryEventCallbac
 
     cpu_callback = cpu_cb;
     memory_callback = memory_cb;
+    syscall_latency_callback = syscall_latency_cb;
     running = true;
     read_thread = std::thread(&RingBufReaderK8s::read_loop, this);
 
@@ -187,6 +246,12 @@ void RingBufReaderK8s::read_loop()
         if (err < 0 && err != -EINTR)
         {
             Logger::error("Error polling Memory ring buffer: " + std::to_string(err));
+        }
+
+        err = ring_buffer__poll(syscall_latency_rb, timeout_ms);
+        if (err < 0 && err != -EINTR)
+        {
+            Logger::error("Error polling Syscall Latency ring buffer: " + std::to_string(err));
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));

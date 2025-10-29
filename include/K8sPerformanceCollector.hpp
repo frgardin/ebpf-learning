@@ -4,6 +4,7 @@
 #include <atomic>
 #include <unordered_map>
 #include <vector>
+#include <unordered_set>
 #include "InfluxClient.hpp"
 #include "RingBufReaderK8s.hpp"
 #include "Logger.hpp"
@@ -30,6 +31,9 @@ private:
     // Metrics aggregation
     std::unordered_map<std::string, std::unordered_map<std::string, double>> pod_metrics_;
 
+    // IO-specific tracking
+    std::unordered_map<std::string, std::unordered_map<std::string, double>> io_pod_metrics_;
+
 public:
     K8sPerformanceCollector(const std::string &protocol = "http",
                             const std::string &host = "localhost",
@@ -50,10 +54,12 @@ private:
     // Event handlers
     void handle_cpu_event(const cpu_event &event);
     void handle_memory_event(const memory_event &event);
+    void handle_syscall_latency_event(const syscall_latency_event &event);
 
     // Metric formatting
     std::string format_cpu_metric(const cpu_event &event, const std::string &pod_info);
     std::string format_memory_metric(const memory_event &event, const std::string &pod_info);
+    std::string format_syscall_latency_metric(const syscall_latency_event &event, const std::string &pod_info);
 
     // Kubernetes info extraction
     std::string get_pod_info(__u32 pid);
@@ -65,5 +71,11 @@ private:
 
     // Metrics aggregation
     void update_pod_metrics(const std::string &pod_name, const std::string &metric_name, double value);
+    void update_io_pod_metrics(const std::string &pod_name, const std::string &metric_name, double value);
     void flush_aggregated_metrics();
+
+    // Syscall utilities
+    std::string get_syscall_name(int syscall_id);
+    bool is_io_syscall(int syscall_id);
+    bool is_important_syscall(int syscall_id);
 };
