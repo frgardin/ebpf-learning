@@ -58,9 +58,7 @@ private:
     int cpu_map_fd;
     int memory_map_fd;
     int syscall_latency_map_fd;
-    struct ring_buffer *cpu_rb;
-    struct ring_buffer *memory_rb;
-    struct ring_buffer *syscall_latency_rb;
+    struct ring_buffer *rb;
     std::atomic<bool> running;
     std::thread read_thread;
 
