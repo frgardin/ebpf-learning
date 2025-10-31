@@ -36,7 +36,7 @@ SEC("raw_tp/sys_enter")
 int trace_syscall_enter(struct bpf_raw_tracepoint_args *ctx) {
     // ctx->args[0] contains the syscall number
     __u32 pid = get_pid();
-    __u64 ts = bpf_ktime_get_ns();
+    __u64 ts = bpf_ktime_get_tai_ns();
     bpf_map_update_elem(&start_times, &pid, &ts, BPF_ANY);
     return 0;
 }
@@ -49,7 +49,7 @@ int trace_syscall_exit(struct bpf_raw_tracepoint_args *ctx) {
     __u64 *start_ts = bpf_map_lookup_elem(&start_times, &pid);
     if (!start_ts) return 0;
     
-    __u64 end_ts = bpf_ktime_get_ns();
+    __u64 end_ts = bpf_ktime_get_tai_ns();
     __u64 duration = end_ts - *start_ts;
     
     bpf_map_delete_elem(&start_times, &pid);
