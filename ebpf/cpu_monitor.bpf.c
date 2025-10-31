@@ -79,13 +79,12 @@ int BPF_PROG(trace_sched_switch, bool preempt, struct task_struct *prev, struct 
 
     event->pid = prev_pid;
     event->tgid = prev_tgid;
-    event->timestamp = bpf_ktime_get_ns();
+    event->timestamp = bpf_ktime_get_tai_ns();
     event->runtime_ns = delta;
     event->cpu_id = bpf_get_smp_processor_id();
     bpf_get_current_comm(&event->comm, sizeof(event->comm));
 
     bpf_ringbuf_submit(event, 0);
 
-    bpf_map_update_elem(&prev_task_runtime, &prev_pid, &current_runtime, BPF_ANY);
     return 0;
 }
