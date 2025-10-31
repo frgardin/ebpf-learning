@@ -37,7 +37,7 @@ int trace_mm_page_alloc(struct trace_event_raw_mm_page_alloc *args)
 
     event->pid = pid;
     event->tgid = tgid;
-    event->timestamp = bpf_ktime_get_ns();
+    event->timestamp = bpf_ktime_get_tai_ns();
     bpf_get_current_comm(&event->comm, sizeof(event->comm));
 
     // Calculate memory allocated (order is log2 of number of pages)
@@ -65,7 +65,7 @@ int trace_mm_page_free(struct trace_event_raw_mm_page_free *args)
 
     event->pid = pid;
     event->tgid = tgid;
-    event->timestamp = bpf_ktime_get_ns();
+    event->timestamp = bpf_ktime_get_tai_ns();
     bpf_get_current_comm(&event->comm, sizeof(event->comm));
 
     // Calculate memory freed
