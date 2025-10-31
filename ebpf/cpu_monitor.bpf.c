@@ -63,14 +63,15 @@ int BPF_PROG(trace_sched_switch, bool preempt, struct task_struct *prev, struct 
         return 0;
 
     __u64 *prev_runtime_ptr = bpf_map_lookup_elem(&prev_task_runtime, &prev_pid);
+    __u64 current_runtime = get_task_runtime(prev);
+
+    bpf_map_update_elem(&prev_task_runtime, &prev_pid, &current_runtime, BPF_ANY);
+    
     if (!prev_runtime_ptr)
     {
-        __u64 zero = 0;
-        bpf_map_update_elem(&prev_task_runtime, &prev_pid, &zero, BPF_ANY);
         return 0;
     }
 
-    __u64 current_runtime = get_task_runtime(prev);
     __u64 delta = current_runtime - *prev_runtime_ptr;
 
     struct cpu_event *event = bpf_ringbuf_reserve(&cpu_rb, sizeof(*event), 0);
