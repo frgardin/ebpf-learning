@@ -246,12 +246,7 @@ std::string K8sPerformanceCollector::format_cpu_metric(const cpu_event &event, c
     line << "runtime_ns=" << event.runtime_ns << "i";
     line << ",usage_percent=" << (event.runtime_ns / 10000000.0); // Simplified calculation
 
-    // Add current timestamp in nanoseconds
-    auto now = std::chrono::system_clock::now();
-    auto timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            now.time_since_epoch())
-                            .count();
-    line << " " << timestamp_ns;
+    line << " " << event.timestamp;
 
     return line.str();
 }
@@ -286,13 +281,7 @@ std::string K8sPerformanceCollector::format_memory_metric(const memory_event &ev
     line << "rss_kb=" << event.rss_kb << "i";
     line << ",cache_kb=" << event.cache_kb << "i";
 
-    // Add current timestamp in nanoseconds
-    auto now = std::chrono::system_clock::now();
-    auto timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            now.time_since_epoch())
-                            .count();
-    line << " " << timestamp_ns;
-
+    line << " " << event.timestamp;
     return line.str();
 }
 
@@ -316,12 +305,7 @@ std::string K8sPerformanceCollector::format_syscall_latency_metric(const syscall
     line << ",latency_us=" << (event.runtime_ns / 1000.0);
     line << ",latency_ms=" << (event.runtime_ns / 1000000.0);
 
-    // Add current timestamp in nanoseconds
-    auto now = std::chrono::system_clock::now();
-    auto timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            now.time_since_epoch())
-                            .count();
-    line << " " << timestamp_ns;
+    line << " " << event.timestamp;
 
     return line.str();
 }
